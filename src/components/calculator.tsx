@@ -90,16 +90,22 @@ function ToggleRow({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <label
-      htmlFor={id}
-      className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-border bg-background px-4 py-3"
-    >
-      <div className="space-y-1">
+    <div className="flex items-start justify-between gap-4 rounded-xl border border-border bg-background px-4 py-3">
+      <button
+        type="button"
+        className="min-w-0 flex-1 space-y-1 text-left"
+        onClick={() => onChange(!checked)}
+      >
         <span className="text-sm font-medium">{label}</span>
         <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>
-      </div>
-      <Switch id={id} checked={checked} onCheckedChange={onChange} />
-    </label>
+      </button>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={onChange}
+        className="mt-0.5 data-unchecked:bg-foreground/25"
+      />
+    </div>
   );
 }
 
@@ -144,7 +150,7 @@ export function Calculator() {
   const [inflationPct, setInflationPct] = useState(DEFAULT_PLAN.inflation * 100);
   const [keyRatePct, setKeyRatePct] = useState(DEFAULT_PLAN.keyRate * 100);
   const [keyFollowsDeposit, setKeyFollowsDeposit] = useState(true);
-  const [indexContributions, setIndexContributions] = useState(false);
+  const [indexContributions, setIndexContributions] = useState(true);
   const [indexWithdrawal, setIndexWithdrawal] = useState(true);
   const [preserveRealCapital, setPreserveRealCapital] = useState(true);
   const [spendDownYears, setSpendDownYears] = useState(30);
