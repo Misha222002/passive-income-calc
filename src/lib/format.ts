@@ -4,13 +4,6 @@ const rubFormatter = new Intl.NumberFormat("ru-RU", {
   maximumFractionDigits: 0,
 });
 
-const compactRubFormatter = new Intl.NumberFormat("ru-RU", {
-  style: "currency",
-  currency: "RUB",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
 const numberFormatter = new Intl.NumberFormat("ru-RU", {
   maximumFractionDigits: 0,
 });
@@ -28,13 +21,14 @@ export function formatRub(value: number): string {
 
 export function formatRubCompact(value: number): string {
   if (!Number.isFinite(value)) return "—";
+  if (Math.abs(value) < 1) return "0 ₽";
   if (Math.abs(value) >= 1_000_000) {
     const millions = value / 1_000_000;
     return `${millions.toLocaleString("ru-RU", {
       maximumFractionDigits: millions >= 100 ? 0 : 1,
     })} млн ₽`;
   }
-  return compactRubFormatter.format(value);
+  return rubFormatter.format(Math.round(value));
 }
 
 export function formatNumber(value: number): string {
