@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import {
   DEFAULT_PLAN,
   DEFAULT_TAX,
@@ -90,22 +90,37 @@ function ToggleRow({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-xl border border-border bg-background px-4 py-3">
-      <button
-        type="button"
-        className="min-w-0 flex-1 space-y-1 text-left"
-        onClick={() => onChange(!checked)}
-      >
-        <span className="text-sm font-medium">{label}</span>
-        <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>
-      </button>
-      <Switch
-        id={id}
-        checked={checked}
-        onCheckedChange={onChange}
-        className="mt-0.5 data-unchecked:bg-foreground/25"
-      />
-    </div>
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="flex w-full items-start justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/40"
+    >
+      <span className="min-w-0 space-y-1">
+        <span className="block text-sm font-medium">{label}</span>
+        <span className="block text-xs leading-relaxed text-muted-foreground">{hint}</span>
+      </span>
+      <span className="mt-0.5 flex shrink-0 items-center gap-2">
+        <span className="text-xs font-medium tabular-nums text-muted-foreground">
+          {checked ? "Вкл" : "Выкл"}
+        </span>
+        <span
+          className={cn(
+            "relative inline-flex h-8 w-14 items-center rounded-full transition-colors",
+            checked ? "bg-primary" : "bg-foreground/35",
+          )}
+        >
+          <span
+            className={cn(
+              "absolute top-1 size-6 rounded-full bg-white shadow-sm transition-transform",
+              checked ? "left-7" : "left-1",
+            )}
+          />
+        </span>
+      </span>
+    </button>
   );
 }
 
