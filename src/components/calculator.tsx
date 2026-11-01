@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { AccumulationChart } from "@/components/accumulation-chart";
+import { Alternatives } from "@/components/alternatives";
 import { NumberStory } from "@/components/number-story";
+import type { AlternativeId } from "@/lib/alternatives";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -745,6 +747,44 @@ export function Calculator() {
           preserveRealCapital={preserveRealCapital}
           spendDownYears={spendDownYears}
           plan={plan}
+        />
+
+        <Alternatives
+          inputs={{
+            monthlyWithdrawal,
+            monthlySaving,
+            startingCapital: effectiveStarting,
+            depositRate: depositRatePct / 100,
+            inflation: inflationPct / 100,
+            keyRate,
+            indexContributions,
+            indexWithdrawal,
+            preserveRealCapital,
+            spendDownYears,
+            tax,
+            diaLimit,
+            maxYears,
+          }}
+          onApply={(id: AlternativeId) => {
+            setActivePreset("custom");
+            if (id === "spend20") {
+              setPreserveRealCapital(false);
+              setSpendDownYears(20);
+            }
+            if (id === "spend30") {
+              setPreserveRealCapital(false);
+              setSpendDownYears(30);
+            }
+            if (id === "noIndex") {
+              setIndexWithdrawal(false);
+            }
+            if (id === "halfSpend30") {
+              setMonthlyWithdrawal(Math.max(10_000, Math.round(monthlyWithdrawal / 2)));
+              setPreserveRealCapital(false);
+              setSpendDownYears(30);
+            }
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
         />
       </main>
 

@@ -1,3 +1,4 @@
+import { buildAlternativePlans } from "./alternatives";
 import { DEFAULT_TAX, buildPlan, explainCashflow, requiredCapital } from "./calc";
 
 function assertClose(actual: number, expected: number, label: string, tol = 0.02) {
@@ -90,5 +91,18 @@ if (!spendDown.need.possible || spendDown.need.capitalToday >= 23_000_000) {
 const ten = explainCashflow(10_000_000, 0.14, 0.07, 0.14, DEFAULT_TAX);
 assertClose(ten.interest, 1_400_000, "10m interest");
 assertClose(ten.monthlyLeftover, 44_683, "10m monthly leftover", 0.03);
+
+const alts = buildAlternativePlans({
+  monthlyWithdrawal: 100_000,
+  monthlySaving: 100_000,
+  depositRate: 0.099,
+  inflation: 0.082,
+  keyRate: 0.099,
+  indexContributions: true,
+});
+const spend20 = alts.cards.find((card) => card.id === "spend20");
+if (!spend20?.possible || !spend20.years || spend20.years > 25) {
+  throw new Error("spend-20 alternative should be reachable");
+}
 
 console.log("calc verification passed");
