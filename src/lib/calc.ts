@@ -125,6 +125,53 @@ export function netInterest(
   return interest - depositTax(interest, keyRate, tax);
 }
 
+export type YearCashflow = {
+  capital: number;
+  interest: number;
+  taxFree: number;
+  taxable: number;
+  taxAtLow: number;
+  taxAtHigh: number;
+  taxPaid: number;
+  netInterest: number;
+  inflationReserve: number;
+  leftover: number;
+  monthlyLeftover: number;
+};
+
+export function explainCashflow(
+  capital: number,
+  rate: number,
+  inflation: number,
+  keyRate: number,
+  tax: TaxParams,
+): YearCashflow {
+  const interest = capital * rate;
+  const taxFree = tax.applyTax ? taxFreeAmount(keyRate, tax) : interest;
+  const taxable = tax.applyTax ? Math.max(0, interest - taxFree) : 0;
+  const taxedAtLow = Math.min(taxable, tax.pitThreshold);
+  const taxedAtHigh = Math.max(0, taxable - tax.pitThreshold);
+  const taxAtLow = taxedAtLow * tax.pitLow;
+  const taxAtHigh = taxedAtHigh * tax.pitHigh;
+  const taxPaid = taxAtLow + taxAtHigh;
+  const net = interest - taxPaid;
+  const inflationReserve = capital * inflation;
+  const leftover = net - inflationReserve;
+  return {
+    capital,
+    interest,
+    taxFree: tax.applyTax ? taxFree : 0,
+    taxable,
+    taxAtLow,
+    taxAtHigh,
+    taxPaid,
+    netInterest: net,
+    inflationReserve,
+    leftover,
+    monthlyLeftover: leftover / 12,
+  };
+}
+
 function emptyNeed(targetAnnual: number, keyRate: number, tax: TaxParams): CapitalNeed {
   return {
     possible: false,

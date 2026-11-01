@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AccumulationChart } from "@/components/accumulation-chart";
+import { NumberStory } from "@/components/number-story";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -721,29 +722,30 @@ export function Calculator() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Как читать модель</CardTitle>
+                <CardTitle>Проверка налога</CardTitle>
+                <CardDescription>Подставьте свои проценты — посчитаем НДФЛ теми же правилами.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
-                <p>
-                  Если включена вечная рента и индексация снятия, формула такая: проценты после налога минус инфляция на капитал равны годовому снятию {formatRub(monthlyWithdrawal * 12)}.
-                </p>
-                <p>
-                  При ставке {formatPercent(depositRatePct / 100)} и инфляции {formatPercent(inflationPct / 100)}
-                  {plan.need.possible
-                    ? ` нужно около ${formatRubCompact(plan.need.capitalToday)}.`
-                    : " конечного капитала нет: после налога ставка не обгоняет цены."}
-                </p>
-                <p>
-                  Это учебный расчёт, а не финансовая рекомендация. Ставки, налог и лимит АСВ можно поменять выше, если закон или ваш банк другие.
-                </p>
-                <div className="grid gap-2">
-                  <Label htmlFor="manual-interest">Проверьте налог на своих процентах</Label>
-                  <TaxPreview keyRate={keyRate} tax={tax} />
-                </div>
+              <CardContent>
+                <TaxPreview keyRate={keyRate} tax={tax} />
               </CardContent>
             </Card>
           </div>
         </section>
+
+        <NumberStory
+          monthlyWithdrawal={monthlyWithdrawal}
+          monthlySaving={monthlySaving}
+          depositRate={depositRatePct / 100}
+          inflation={inflationPct / 100}
+          keyRate={keyRate}
+          tax={tax}
+          applyTax={applyTax}
+          indexContributions={indexContributions}
+          indexWithdrawal={indexWithdrawal}
+          preserveRealCapital={preserveRealCapital}
+          spendDownYears={spendDownYears}
+          plan={plan}
+        />
       </main>
 
       <footer className="border-t border-border/70">
