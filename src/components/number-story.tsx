@@ -56,16 +56,35 @@ function Line({ label, value, strong }: { label: string; value: string; strong?:
   );
 }
 
-function CashflowTable({ flow, applyTax }: { flow: ReturnType<typeof explainCashflow>; applyTax: boolean }) {
+function CashflowTable({
+  flow,
+  applyTax,
+  depositRate,
+}: {
+  flow: ReturnType<typeof explainCashflow>;
+  applyTax: boolean;
+  depositRate: number;
+}) {
+  const netYield = flow.capital > 0 ? flow.netInterest / flow.capital : 0;
+  const taxShare = flow.interest > 0 ? flow.taxPaid / flow.interest : 0;
   return (
     <div className="rounded-xl bg-muted/60 px-4 py-3">
       <Line label="На вкладе" value={formatRub(flow.capital)} />
-      <Line label="Проценты за год" value={formatRub(flow.interest)} />
+      <Line
+        label={`Проценты за год, ${formatPercent(depositRate)}`}
+        value={formatRub(flow.interest)}
+      />
       {applyTax ? (
         <>
           <Line label="Не облагается налогом" value={formatRub(flow.taxFree)} />
           <Line label="НДФЛ" value={`− ${formatRub(flow.taxPaid)}`} />
+          <Line label="Налог от всех процентов" value={formatPercent(taxShare, 2)} />
           <Line label="Проценты после налога" value={formatRub(flow.netInterest)} />
+          <Line
+            label="Доходность после налога"
+            value={`${formatRub(flow.netInterest)} ÷ ${formatRub(flow.capital)} = ${formatPercent(netYield, 2)}`}
+            strong
+          />
         </>
       ) : (
         <Line label="Налог выключен" value={formatRub(0)} />
@@ -103,6 +122,11 @@ export function NumberStory({
   const tenFlow = explainCashflow(EXAMPLE_CAPITAL, depositRate, inflation, keyRate, tax);
   const shortfall = monthlyWithdrawal - tenFlow.monthlyLeftover;
   const marks = milestoneYears(plan.history, plan.years);
+  const netYield = target > 0 ? targetFlow.netInterest / target : 0;
+  const taxShare = targetFlow.interest > 0 ? targetFlow.taxPaid / targetFlow.interest : 0;
+  const naiveLow = depositRate * (1 - tax.pitLow);
+  const naiveHigh = depositRate * (1 - tax.pitHigh);
+  const tenYield = tenFlow.capital > 0 ? tenFlow.netInterest / tenFlow.capital : 0;
 
   return (
     <section className="rounded-2xl border border-border bg-card px-5 py-8 sm:px-8">
@@ -138,17 +162,32 @@ export function NumberStory({
           {applyTax ? (
             <>
               <p>
-                Налогом облагаются не все проценты. Необлагаемый кусок:{" "}
-                {formatRub(targetFlow.taxFree)}. С превышения — {formatPercent(tax.pitLow)} до{" "}
-                {formatRub(tax.pitThreshold)} базы и {formatPercent(tax.pitHigh)} дальше.
+                Карточка «после налога остаётся {formatPercent(netYield, 1)}» — это не ставка банка минус{" "}
+                {formatPercent(tax.pitLow)}. Формула такая:
+              </p>
+              <p className="rounded-xl bg-primary/5 px-4 py-3 text-foreground">
+                доходность после налога = (проценты − НДФЛ) ÷ капитал = {formatRub(targetFlow.netInterest)} ÷{" "}
+                {formatRub(target)} = {formatPercent(netYield, 2)}
               </p>
               <p>
-                Налог с {formatRub(targetFlow.interest)} получается{" "}
-                <span className="text-foreground">{formatRub(targetFlow.taxPaid)}</span>
-                {targetFlow.taxAtHigh > 0
-                  ? `: ${formatRub(targetFlow.taxAtLow)} по обычной ставке и ${formatRub(targetFlow.taxAtHigh)} по повышенной.`
-                  : "."}{" "}
-                После налога остаётся {formatRub(targetFlow.netInterest)}.
+                Необлагаемый кусок маленький: 1 млн ₽ × ключевая {formatPercent(keyRate)} ={" "}
+                {formatRub(targetFlow.taxFree)}. На большом капитале это почти не чувствуется. Налоговая база:{" "}
+                {formatRub(targetFlow.taxable)}.
+              </p>
+              <p>
+                Дальше лестница. Первые {formatRub(tax.pitThreshold)} базы × {formatPercent(tax.pitLow)} ={" "}
+                {formatRub(targetFlow.taxAtLow)}. Всё, что выше, × {formatPercent(tax.pitHigh)} ={" "}
+                {formatRub(targetFlow.taxAtHigh)}. Итого налог{" "}
+                <span className="text-foreground">{formatRub(targetFlow.taxPaid)}</span> — это{" "}
+                {formatPercent(taxShare, 2)} всех процентов, ближе к {formatPercent(tax.pitHigh)}, чем к{" "}
+                {formatPercent(tax.pitLow)}.
+              </p>
+              <p>
+                Поэтому ждать {formatPercent(depositRate)} × (1 − {formatPercent(tax.pitLow)}) ={" "}
+                {formatPercent(naiveLow, 2)} не стоит. На таком капитале почти все проценты уже в зоне{" "}
+                {formatPercent(tax.pitHigh)}: {formatPercent(depositRate)} × (1 − {formatPercent(tax.pitHigh)}) ={" "}
+                {formatPercent(naiveHigh, 2)}. Необлагаемый лимит и кусок по {formatPercent(tax.pitLow)} чуть
+                поднимают результат до {formatPercent(netYield, 2)}.
               </p>
             </>
           ) : (
@@ -186,7 +225,7 @@ export function NumberStory({
               выше или инфляция ниже — хватит меньшей суммы.
             </p>
           ) : null}
-          <CashflowTable flow={targetFlow} applyTax={applyTax} />
+          <CashflowTable flow={targetFlow} applyTax={applyTax} depositRate={depositRate} />
         </Step>
       </ol>
 
@@ -197,7 +236,12 @@ export function NumberStory({
             Та же ставка {formatPercent(depositRate)}, та же инфляция {formatPercent(inflation)}. Смотрите, сколько
             останется на жизнь — и почему 10 млн обычно мало для {formatRub(monthlyWithdrawal)} в месяц.
           </p>
-          <CashflowTable flow={tenFlow} applyTax={applyTax} />
+          <CashflowTable flow={tenFlow} applyTax={applyTax} depositRate={depositRate} />
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            На 10 млн проценты ещё не дотягивают до порога {formatRub(tax.pitThreshold)}, поэтому налог почти весь
+            по {formatPercent(tax.pitLow)}, и доходность после налога выше: {formatPercent(tenYield, 2)} вместо{" "}
+            {formatPercent(netYield, 2)} на целевом капитале.
+          </p>
           <p className="text-sm leading-relaxed text-muted-foreground">
             {tenFlow.monthlyLeftover >= monthlyWithdrawal ? (
               <>

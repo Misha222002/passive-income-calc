@@ -672,10 +672,10 @@ export function Calculator() {
               />
               <Stat
                 label="После налога остаётся"
-                value={plan.need.possible ? formatPercent(plan.need.netYield) : "—"}
+                value={plan.need.possible ? formatPercent(plan.need.netYield, 2) : "—"}
                 hint={
                   plan.need.possible
-                    ? `Инфляция ${formatPercent(inflationPct / 100)}, на жизнь ${formatPercent(plan.need.realSpread)}`
+                    ? `(проценты − НДФЛ) ÷ капитал. Это не ${formatPercent(depositRatePct / 100)} минус 13%. Инфляция ${formatPercent(inflationPct / 100)}, на жизнь ${formatPercent(plan.need.realSpread, 2)}`
                     : "Номинальная ставка после ваших правил ниже инфляции"
                 }
               />
