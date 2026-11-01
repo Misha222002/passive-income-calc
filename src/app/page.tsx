@@ -1,3 +1,5 @@
+"use client";
+
 import { Calculator } from "@/components/calculator";
 
 export default function Home() {
